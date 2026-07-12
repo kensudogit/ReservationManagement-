@@ -2,13 +2,29 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
+import { UsageGuideDialog } from "@/components/UsageGuideDialog";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
   const isAuthPage = pathname === "/login" || pathname === "/register";
+  const [guideOpen, setGuideOpen] = useState(false);
+
+  useEffect(() => {
+    if (isAuthPage || !user) return;
+    try {
+      const seen = localStorage.getItem("srm_guide_seen");
+      if (!seen) {
+        setGuideOpen(true);
+        localStorage.setItem("srm_guide_seen", "1");
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [isAuthPage, user]);
 
   const links = [
     { href: "/", label: "ダッシュボード" },
@@ -59,6 +75,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <div className="side-foot">
+          <button type="button" className="ghost-btn guide-open-btn" onClick={() => setGuideOpen(true)}>
+            利用手順
+          </button>
           <p className="user-name">{user?.full_name}</p>
           <p className="user-meta">
             {user?.role === "admin" ? "管理者" : "会員"}
@@ -70,6 +89,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <main className="main">{children}</main>
+      <UsageGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
   );
 }
