@@ -237,22 +237,101 @@ Next.js :PORT  ──rewrite──▶  FastAPI :8000
           </section>
 
           <section className="guide-section">
-            <h3>7. Google カレンダー連携</h3>
+            <h3>7. Google カレンダー連携（アプリ操作）</h3>
             <ol>
               <li>
                 「設定」(<code>/settings</code>) を開きます。
               </li>
               <li>
-                <code>GOOGLE_CLIENT_ID</code> / <code>SECRET</code> が環境変数にある場合、「Google と連携する」で OAuth
-                同意します。
+                環境変数が設定済みなら「Google と連携する」を押し、Google の同意画面で許可します。
+              </li>
+              <li>
+                成功すると <code>/settings?google=connected</code> に戻り、「連携中」と表示されます。
               </li>
               <li>以降の予約作成・キャンセルが primary カレンダーに同期されます。</li>
-              <li>未設定でも予約機能は利用できます（同期のみスキップ）。</li>
+              <li>未設定でも予約・検索・キャンセルは利用できます（カレンダー同期のみスキップ）。</li>
             </ol>
           </section>
 
           <section className="guide-section">
-            <h3>8. 管理者向け</h3>
+            <h3>8. Railway に GOOGLE_CLIENT_ID / SECRET を設定する手順</h3>
+            <p>
+              Google カレンダー連携を本番で使うには、Google Cloud で OAuth クライアントを作り、Railway
+              の<strong>アプリサービス</strong>（Postgres ではない方）に環境変数を入れます。
+            </p>
+
+            <h3 style={{ fontSize: "0.9rem", marginTop: 16 }}>8-1. Google Cloud Console</h3>
+            <ol>
+              <li>
+                <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer">
+                  Google Cloud Console
+                </a>
+                でプロジェクトを選択（なければ作成）。
+              </li>
+              <li>
+                <strong>API とサービス → ライブラリ</strong> で <strong>Google Calendar API</strong> を有効化。
+              </li>
+              <li>
+                <strong>OAuth 同意画面</strong> を設定（外部）。テスト運用なら、連携に使う Gmail を
+                <strong>テストユーザー</strong>に追加。
+              </li>
+              <li>
+                <strong>認証情報 → 認証情報を作成 → OAuth クライアント ID</strong>
+                <br />
+                種類: <strong>ウェブ アプリケーション</strong>
+              </li>
+              <li>
+                <strong>承認済みのリダイレクト URI</strong> に次を<strong>一字一句同じ</strong>で追加:
+                <br />
+                <code>https://reservationmanagement-production.up.railway.app/api/google/callback</code>
+                <br />
+                （ローカル併用時は <code>http://localhost:8000/api/google/callback</code> も追加）
+              </li>
+              <li>
+                作成後に表示される <strong>クライアント ID</strong> と <strong>クライアント シークレット</strong>{" "}
+                を控える。
+              </li>
+            </ol>
+
+            <h3 style={{ fontSize: "0.9rem", marginTop: 16 }}>8-2. Railway Variables</h3>
+            <ol>
+              <li>
+                Railway → プロジェクト → <strong>Web アプリのサービス</strong>（Postgres ではない）を開く。
+              </li>
+              <li>
+                <strong>Variables</strong> で次を追加・保存（値は自分の環境に合わせる）:
+              </li>
+            </ol>
+            <pre className="guide-topo">{`GOOGLE_CLIENT_ID=xxxxx.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=GOCSPX-xxxxx
+GOOGLE_REDIRECT_URI=https://reservationmanagement-production.up.railway.app/api/google/callback
+FRONTEND_URL=https://reservationmanagement-production.up.railway.app`}</pre>
+            <ol start={3}>
+              <li>
+                保存後に再デプロイされることを確認（されない場合は <strong>Redeploy</strong>）。
+              </li>
+              <li>
+                アプリでログイン → 設定 →「Google と連携する」→ 同意 →{" "}
+                <code>?google=connected</code> になれば成功。
+              </li>
+            </ol>
+
+            <h3 style={{ fontSize: "0.9rem", marginTop: 16 }}>8-3. よくある失敗</h3>
+            <ul>
+              <li>
+                <code>redirect_uri_mismatch</code> — Console の URI と{" "}
+                <code>GOOGLE_REDIRECT_URI</code> が不一致（http/https・末尾スラッシュに注意）
+              </li>
+              <li>
+                「未設定」と出る — 変数を Postgres 側に入れていない / Redeploy 未実施
+              </li>
+              <li>同意画面で拒否 — OAuth 同意画面のテストユーザー未追加</li>
+              <li>カレンダーに出ない — Calendar API が未有効</li>
+            </ul>
+          </section>
+
+          <section className="guide-section">
+            <h3>9. 管理者向け</h3>
             <ol>
               <li>
                 管理者でログインすると「契約管理」(<code>/admin/subscriptions</code>) が表示されます。
@@ -263,7 +342,7 @@ Next.js :PORT  ──rewrite──▶  FastAPI :8000
           </section>
 
           <section className="guide-section">
-            <h3>9. 運用メモ</h3>
+            <h3>10. 運用メモ</h3>
             <ul>
               <li>
                 ヘルスチェック: <code>GET /health</code>
@@ -275,7 +354,11 @@ Next.js :PORT  ──rewrite──▶  FastAPI :8000
                 必須環境変数: <code>DATABASE_URL</code>, <code>SECRET_KEY</code>
               </li>
               <li>
-                任意: <code>STRIPE_*</code>, <code>SMTP_*</code>, <code>GOOGLE_*</code>
+                Google 連携: <code>GOOGLE_CLIENT_ID</code>, <code>GOOGLE_CLIENT_SECRET</code>,{" "}
+                <code>GOOGLE_REDIRECT_URI</code>, <code>FRONTEND_URL</code>
+              </li>
+              <li>
+                任意: <code>STRIPE_*</code>, <code>SMTP_*</code>
               </li>
               <li>
                 Railway ではアプリ URL（例: <code>reservationmanagement-production.up.railway.app</code>

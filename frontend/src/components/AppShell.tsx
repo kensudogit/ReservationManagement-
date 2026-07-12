@@ -26,6 +26,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthPage, user]);
 
+  useEffect(() => {
+    const open = () => setGuideOpen(true);
+    window.addEventListener("srm:open-guide", open);
+    return () => window.removeEventListener("srm:open-guide", open);
+  }, []);
+
   const links = [
     { href: "/", label: "ダッシュボード" },
     { href: "/reservations", label: "予約確認" },
@@ -63,6 +69,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <p className="brand-sub">撮影スタジオ予約</p>
           </div>
         </div>
+
+        <button type="button" className="guide-nav-btn" onClick={() => setGuideOpen(true)}>
+          利用手順を開く
+        </button>
+
         <nav>
           {links.map((link) => (
             <Link
@@ -75,9 +86,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           ))}
         </nav>
         <div className="side-foot">
-          <button type="button" className="ghost-btn guide-open-btn" onClick={() => setGuideOpen(true)}>
-            利用手順
-          </button>
           <p className="user-name">{user?.full_name}</p>
           <p className="user-meta">
             {user?.role === "admin" ? "管理者" : "会員"}
@@ -89,6 +97,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <main className="main">{children}</main>
+
+      <button
+        type="button"
+        className="guide-fab"
+        onClick={() => setGuideOpen(true)}
+        aria-label="利用手順を開く"
+        title="利用手順"
+      >
+        ?
+      </button>
+
       <UsageGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
     </div>
   );

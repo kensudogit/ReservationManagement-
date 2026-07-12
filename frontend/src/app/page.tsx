@@ -73,6 +73,20 @@ export default function DashboardPage() {
         <Link className="ghost-btn" href="/reservations">
           予約一覧を見る
         </Link>
+        <button
+          type="button"
+          className="ghost-btn"
+          onClick={() => {
+            try {
+              localStorage.removeItem("srm_guide_seen");
+            } catch {
+              /* ignore */
+            }
+            window.dispatchEvent(new CustomEvent("srm:open-guide"));
+          }}
+        >
+          利用手順を見る
+        </button>
       </div>
 
       <section className="panel">
