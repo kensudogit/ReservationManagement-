@@ -1,13 +1,16 @@
-from datetime import datetime, timedelta, timezone
+from __future__ import annotations
 
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import Flow
-from googleapiclient.discovery import build
+from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING
+
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.reservation import Reservation
 from app.models.user import User
+
+if TYPE_CHECKING:
+    from google.oauth2.credentials import Credentials
 
 SCOPES = ["https://www.googleapis.com/auth/calendar.events"]
 
@@ -29,6 +32,8 @@ def _client_config() -> dict:
 
 
 def build_auth_url(state: str) -> str:
+    from google_auth_oauthlib.flow import Flow
+
     if not google_configured():
         raise RuntimeError("Google OAuth が設定されていません")
     flow = Flow.from_client_config(_client_config(), scopes=SCOPES, state=state)
@@ -42,6 +47,8 @@ def build_auth_url(state: str) -> str:
 
 
 def exchange_code(code: str) -> Credentials:
+    from google_auth_oauthlib.flow import Flow
+
     flow = Flow.from_client_config(_client_config(), scopes=SCOPES)
     flow.redirect_uri = settings.google_redirect_uri
     flow.fetch_token(code=code)
@@ -49,6 +56,8 @@ def exchange_code(code: str) -> Credentials:
 
 
 def _credentials_from_user(user: User) -> Credentials | None:
+    from google.oauth2.credentials import Credentials
+
     if not user.google_refresh_token or not google_configured():
         return None
     return Credentials(
@@ -62,6 +71,8 @@ def _credentials_from_user(user: User) -> Credentials | None:
 
 
 def create_calendar_event(user: User, reservation: Reservation) -> str | None:
+    from googleapiclient.discovery import build
+
     creds = _credentials_from_user(user)
     if not creds:
         return None
@@ -80,6 +91,8 @@ def create_calendar_event(user: User, reservation: Reservation) -> str | None:
 
 
 def delete_calendar_event(user: User, event_id: str | None) -> None:
+    from googleapiclient.discovery import build
+
     if not event_id:
         return
     creds = _credentials_from_user(user)
