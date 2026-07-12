@@ -1,0 +1,9 @@
+# Frontend service (Railway で Web サービスを別途作る場合)
+# Root Directory: frontend  または  dockerfilePath: frontend/Dockerfile
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+restartPolicyType = "ON_FAILURE"

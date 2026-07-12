@@ -12,7 +12,27 @@
 | Infra | Docker Compose |
 | 連携 | Google Calendar API (OAuth 2.0) |
 
-## サブスクリプション
+## デプロイ (Railway 等)
+
+ルートの `Dockerfile` は **API (FastAPI)** をビルドします。
+
+必要な環境変数例:
+- `DATABASE_URL` — PostgreSQL 接続文字列
+- `SECRET_KEY` — JWT 署名鍵
+- `CORS_ORIGINS` — フロントの Origin（例: `https://your-app.up.railway.app`）
+- `FRONTEND_URL` — フロント URL
+- `PORT` — プラットフォームが自動設定
+
+フロントを別サービスでデプロイする場合:
+- Root Directory を `frontend` にするか、Dockerfile Path を `frontend/Dockerfile`
+- ビルド引数 / 環境変数: `NEXT_PUBLIC_API_URL` = API の公開 URL
+
+```bash
+# ローカルでルート Dockerfile の動作確認
+docker build -t srm-api .
+docker run --rm -p 8000:8000 --env-file .env srm-api
+```
+
 
 | プラン | 月枠 | 月額 |
 |--------|------|------|
