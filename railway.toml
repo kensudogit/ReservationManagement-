@@ -1,3 +1,6 @@
+# このファイルは API サービス用です。
+# フロントサービスは Dockerfile.frontend を使い、Root Directory は空にしてください。
+
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"

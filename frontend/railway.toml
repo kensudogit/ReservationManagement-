@@ -1,9 +1,17 @@
-# Frontend service (Railway で Web サービスを別途作る場合)
-# Root Directory: frontend  または  dockerfilePath: frontend/Dockerfile
+# Railway Web サービス設定（ダッシュボードで合わせる）
+#
+# 必須:
+#   Root Directory  → 空（未設定）  ※ "frontend" と入れると失敗します
+#   Dockerfile Path → Dockerfile.frontend
+#   環境変数 NEXT_PUBLIC_API_URL → API の公開 URL
+#
+# 失敗例のログ:
+#   lstat .../frontend : no such file or directory
+#   → Root Directory に frontend が入っているのが原因です。空にしてください。
 
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile"
+dockerfilePath = "Dockerfile.frontend"
 
 [deploy]
 restartPolicyType = "ON_FAILURE"

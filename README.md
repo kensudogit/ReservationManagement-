@@ -14,23 +14,26 @@
 
 ## デプロイ (Railway 等)
 
-ルートの `Dockerfile` は **API (FastAPI)** をビルドします。
+### API サービス
+- **Root Directory:** 空
+- **Dockerfile Path:** `Dockerfile`
+- 環境変数: `DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS`, `FRONTEND_URL`, `PORT`
 
-必要な環境変数例:
-- `DATABASE_URL` — PostgreSQL 接続文字列
-- `SECRET_KEY` — JWT 署名鍵
-- `CORS_ORIGINS` — フロントの Origin（例: `https://your-app.up.railway.app`）
-- `FRONTEND_URL` — フロント URL
-- `PORT` — プラットフォームが自動設定
+### Web (フロント) サービス
+- **Root Directory:** 空（重要: `frontend` と入れない）
+- **Dockerfile Path:** `Dockerfile.frontend`
+- 環境変数: `NEXT_PUBLIC_API_URL` = API の公開 URL
 
-フロントを別サービスでデプロイする場合:
-- Root Directory を `frontend` にするか、Dockerfile Path を `frontend/Dockerfile`
-- ビルド引数 / 環境変数: `NEXT_PUBLIC_API_URL` = API の公開 URL
+Root Directory を `frontend` にすると、ビルダーが存在しないパスを参照して次のエラーになります。
+
+```
+lstat .../frontend : no such file or directory
+```
 
 ```bash
-# ローカルでルート Dockerfile の動作確認
+# ローカル確認
 docker build -t srm-api .
-docker run --rm -p 8000:8000 --env-file .env srm-api
+docker build -t srm-web -f Dockerfile.frontend .
 ```
 
 
