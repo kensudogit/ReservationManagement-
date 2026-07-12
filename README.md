@@ -12,29 +12,27 @@
 | Infra | Docker Compose |
 | 連携 | Google Calendar API (OAuth 2.0) |
 
-## デプロイ (Railway 等)
+## デプロイ (Railway)
 
-### API サービス
-- **Root Directory:** 空
-- **Dockerfile Path:** `Dockerfile`
-- 環境変数: `DATABASE_URL`, `SECRET_KEY`, `CORS_ORIGINS`, `FRONTEND_URL`, `PORT`
+単一サービス構成（推奨）: ルート `Dockerfile` が **Next.js + FastAPI** を起動します。
 
-### Web (フロント) サービス
-- **Root Directory:** 空（重要: `frontend` と入れない）
-- **Dockerfile Path:** `Dockerfile.frontend`
-- 環境変数: `NEXT_PUBLIC_API_URL` = API の公開 URL
+### 必須設定
+1. **PostgreSQL** プラグインを追加し、サービスに `DATABASE_URL` を接続
+2. **Root Directory:** 空
+3. **Dockerfile Path:** `Dockerfile`
+4. 環境変数:
+   - `SECRET_KEY` — 任意の長いランダム文字列
+   - `DATABASE_URL` — Postgres プラグインから自動注入
+   - `CORS_ORIGINS` — `https://reservationmanagement-production.up.railway.app`
+   - `FRONTEND_URL` — 同上
 
-Root Directory を `frontend` にすると、ビルダーが存在しないパスを参照して次のエラーになります。
+### 「電車の 404」(The train has not arrived)
+アプリが起動していないときに出ます。ほぼ次が原因です。
+- `DATABASE_URL` 未設定 / Postgres 未追加
+- デプロイ失敗・クラッシュループ
+- ドメインが稼働中サービスに紐づいていない
 
-```
-lstat .../frontend : no such file or directory
-```
-
-```bash
-# ローカル確認
-docker build -t srm-api .
-docker build -t srm-web -f Dockerfile.frontend .
-```
+Railway ダッシュボード → 対象サービス → Deployments でログを確認してください。
 
 
 | プラン | 月枠 | 月額 |

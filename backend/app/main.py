@@ -21,6 +21,16 @@ app.add_middleware(
 app.include_router(api_router)
 
 
+@app.get("/")
+def root() -> dict[str, str]:
+    return {
+        "service": "Studio Reservation Manager API",
+        "status": "ok",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}

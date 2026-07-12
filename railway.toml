@@ -1,5 +1,4 @@
-# このファイルは API サービス用です。
-# フロントサービスは Dockerfile.frontend を使い、Root Directory は空にしてください。
+# All-in-one (API + Next.js) — default for Railway single service
 
 [build]
 builder = "DOCKERFILE"
@@ -7,4 +6,5 @@ dockerfilePath = "Dockerfile"
 
 [deploy]
 healthcheckPath = "/health"
+healthcheckTimeout = 120
 restartPolicyType = "ON_FAILURE"

@@ -9,5 +9,5 @@
 **/node_modules
 **/.next
 **/.pytest_cache
-*.md
-!README.md
+*.log
+docs
