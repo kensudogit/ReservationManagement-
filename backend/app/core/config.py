@@ -26,6 +26,22 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:3000"
     algorithm: str = "HS256"
 
+    # Stripe
+    stripe_secret_key: str = ""
+    stripe_publishable_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_success_url: str = ""
+    stripe_cancel_url: str = ""
+
+    # Email (SMTP). 未設定時はコンソール出力 + DB 記録（デモモード）
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "noreply@studio-reservation.local"
+    smtp_use_tls: bool = True
+    tax_rate: float = 0.10
+
     @field_validator("database_url", mode="before")
     @classmethod
     def _db_url(cls, value: str) -> str:
@@ -34,6 +50,14 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def stripe_enabled(self) -> bool:
+        return bool(self.stripe_secret_key)
+
+    @property
+    def smtp_enabled(self) -> bool:
+        return bool(self.smtp_host)
 
 
 settings = Settings()

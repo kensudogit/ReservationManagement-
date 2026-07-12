@@ -43,6 +43,7 @@ class Plan(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     monthly_quota: Mapped[int] = mapped_column(Integer)
     price_yen: Mapped[int] = mapped_column(Integer, default=0)
+    stripe_price_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -53,6 +54,7 @@ class SubscriptionStatus(str, Enum):
     ACTIVE = "active"
     CANCELLED = "cancelled"
     EXPIRED = "expired"
+    PAST_DUE = "past_due"
 
 
 class Subscription(Base):
@@ -70,6 +72,9 @@ class Subscription(Base):
     auto_renew: Mapped[bool] = mapped_column(Boolean, default=True)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)
+    stripe_subscription_item_id: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
     user = relationship("User", back_populates="subscription")
     plan = relationship("Plan", back_populates="subscriptions")
+    invoices = relationship("Invoice", back_populates="subscription")

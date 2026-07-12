@@ -9,11 +9,15 @@ from app.models.user import User
 from app.schemas import (
     AdminSubscriptionUpdate,
     ChangePlanRequest,
+    ChangePlanResultOut,
     MessageOut,
     PlanOut,
     ReactivateRequest,
     SubscriptionOut,
 )
+from app.services import email_notify
+from app.services import invoices as invoice_service
+from app.services import stripe_billing
 from app.services import subscriptions as sub_service
 
 router = APIRouter(tags=["subscriptions"])
@@ -39,14 +43,13 @@ def my_subscription(
     return sub_service.serialize_subscription(sub)
 
 
-@router.post("/subscriptions/change-plan", response_model=SubscriptionOut)
+@router.post("/subscriptions/change-plan", response_model=ChangePlanResultOut)
 def change_plan(
     payload: ChangePlanRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ) -> dict:
-    sub = sub_service.change_plan(db, current_user, payload.plan_code)
-    return sub_service.serialize_subscription(sub)
+    return invoice_service.change_plan_with_proration(db, current_user, payload.plan_code)
 
 
 @router.post("/subscriptions/cancel", response_model=SubscriptionOut)
@@ -55,6 +58,10 @@ def cancel_subscription(
     current_user: User = Depends(get_current_user),
 ) -> dict:
     sub = sub_service.cancel_subscription(db, current_user)
+    stripe_billing.cancel_stripe_subscription(sub, at_period_end=True)
+    email_notify.notify_subscription_cancelled(
+        db, current_user, period_end=str(sub.period_end)
+    )
     return sub_service.serialize_subscription(sub)
 
 
@@ -74,6 +81,7 @@ def renew_subscription(
     current_user: User = Depends(get_current_user),
 ) -> dict:
     sub = sub_service.renew_period(db, current_user)
+    invoice_service.create_renewal_invoice(db, current_user, sub)
     return sub_service.serialize_subscription(sub)
 
 

@@ -140,3 +140,85 @@ class MessageOut(BaseModel):
 class GoogleAuthUrl(BaseModel):
     url: str
     configured: bool
+
+
+class BillingConfigOut(BaseModel):
+    stripe_enabled: bool
+    publishable_key: str | None = None
+    smtp_enabled: bool
+    tax_rate: float
+    demo_mode: bool
+
+
+class CheckoutRequest(BaseModel):
+    plan_code: str
+
+
+class CheckoutSessionOut(BaseModel):
+    id: str
+    url: str
+    mode: str
+    invoice: dict | None = None
+
+
+class PortalSessionOut(BaseModel):
+    url: str
+
+
+class InvoiceLineItem(BaseModel):
+    label: str
+    amount_yen: int
+
+
+class InvoiceOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    user_id: int
+    subscription_id: int | None = None
+    number: str
+    status: str
+    kind: str
+    description: str | None = None
+    currency: str
+    subtotal_yen: int
+    tax_yen: int
+    total_yen: int
+    amount_paid_yen: int
+    proration_yen: int
+    period_start: datetime | None = None
+    period_end: datetime | None = None
+    stripe_invoice_id: str | None = None
+    hosted_invoice_url: str | None = None
+    invoice_pdf_url: str | None = None
+    line_items: list[InvoiceLineItem] = []
+    paid_at: datetime | None = None
+    created_at: datetime
+    user_name: str | None = None
+    user_email: str | None = None
+
+
+class ProrationPreviewOut(BaseModel):
+    from_plan_code: str
+    from_plan_name: str
+    to_plan_code: str
+    to_plan_name: str
+    old_price_yen: int
+    new_price_yen: int
+    period_start: datetime | str
+    period_end: datetime | str
+    remaining_days: int
+    total_days: int
+    unused_credit_yen: int
+    new_charge_yen: int
+    proration_yen: int
+    tax_yen: int
+    total_due_yen: int
+    direction: str
+    explanation: str
+
+
+class ChangePlanResultOut(BaseModel):
+    subscription: SubscriptionOut
+    proration: ProrationPreviewOut
+    invoice: InvoiceOut

@@ -61,6 +61,66 @@ export type TimeSlot = {
   studio_name?: string | null;
 };
 
+export type Invoice = {
+  id: number;
+  user_id: number;
+  subscription_id?: number | null;
+  number: string;
+  status: string;
+  kind: string;
+  description?: string | null;
+  currency: string;
+  subtotal_yen: number;
+  tax_yen: number;
+  total_yen: number;
+  amount_paid_yen: number;
+  proration_yen: number;
+  period_start?: string | null;
+  period_end?: string | null;
+  stripe_invoice_id?: string | null;
+  hosted_invoice_url?: string | null;
+  invoice_pdf_url?: string | null;
+  line_items: { label: string; amount_yen: number }[];
+  paid_at?: string | null;
+  created_at: string;
+  user_name?: string | null;
+  user_email?: string | null;
+};
+
+export type ProrationPreview = {
+  from_plan_code: string;
+  from_plan_name: string;
+  to_plan_code: string;
+  to_plan_name: string;
+  old_price_yen: number;
+  new_price_yen: number;
+  period_start: string;
+  period_end: string;
+  remaining_days: number;
+  total_days: number;
+  unused_credit_yen: number;
+  new_charge_yen: number;
+  proration_yen: number;
+  tax_yen: number;
+  total_due_yen: number;
+  direction: string;
+  explanation: string;
+};
+
+export type BillingConfig = {
+  stripe_enabled: boolean;
+  publishable_key?: string | null;
+  smtp_enabled: boolean;
+  tax_rate: number;
+  demo_mode: boolean;
+};
+
+export type ChangePlanResult = {
+  subscription: Subscription;
+  proration: ProrationPreview;
+  invoice: Invoice;
+};
+
 export type Reservation = {
   id: number;
   user_id: number;
@@ -159,8 +219,15 @@ export const api = {
   googleDisconnect: () => request<{ message: string }>("/api/google/disconnect", { method: "DELETE" }),
   plans: () => request<Plan[]>("/api/plans"),
   mySubscription: () => request<Subscription>("/api/subscriptions/me"),
-  changePlan: (plan_code: string) =>
-    request<Subscription>("/api/subscriptions/change-plan", {
+  changePlan: async (plan_code: string) => {
+    const result = await request<ChangePlanResult>("/api/subscriptions/change-plan", {
+      method: "POST",
+      body: JSON.stringify({ plan_code }),
+    });
+    return result;
+  },
+  previewChangePlan: (plan_code: string) =>
+    request<ProrationPreview>("/api/subscriptions/change-plan/preview", {
       method: "POST",
       body: JSON.stringify({ plan_code }),
     }),
@@ -173,6 +240,19 @@ export const api = {
     }),
   renewSubscription: () =>
     request<Subscription>("/api/subscriptions/renew", { method: "POST" }),
+  billingConfig: () => request<BillingConfig>("/api/billing/config"),
+  checkout: (plan_code: string) =>
+    request<{ id: string; url: string; mode: string; invoice?: Invoice }>("/api/billing/checkout", {
+      method: "POST",
+      body: JSON.stringify({ plan_code }),
+    }),
+  billingPortal: () => request<{ url: string }>("/api/billing/portal", { method: "POST" }),
+  invoices: () => request<Invoice[]>("/api/billing/invoices"),
+  invoice: (id: number) => request<Invoice>(`/api/billing/invoices/${id}`),
+  notifications: () =>
+    request<{ id: number; to_email: string; subject: string; template_key: string; status: string; created_at: string }[]>(
+      "/api/billing/notifications",
+    ),
   adminSubscriptions: () => request<Subscription[]>("/api/admin/subscriptions"),
   adminUpdateSubscription: (
     userId: number,
@@ -228,5 +308,13 @@ export function subscriptionStatusLabel(status: string): string {
   if (status === "active") return "有効";
   if (status === "cancelled") return "解約予定";
   if (status === "expired") return "期限切れ";
+  if (status === "past_due") return "支払遅延";
   return status;
+}
+
+export function receiptUrl(invoiceId: number): string {
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const base = API_URL || "";
+  // HTML receipt needs Authorization; open via dedicated page that fetches with token
+  return `/subscription/invoices/${invoiceId}`;
 }

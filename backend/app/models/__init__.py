@@ -1,3 +1,4 @@
+from app.models.billing import EmailNotification, Invoice, InvoiceStatus
 from app.models.reservation import Reservation, ReservationStatus
 from app.models.studio import Plan, Studio, Subscription, TimeSlot
 from app.models.user import User, UserRole
@@ -11,4 +12,7 @@ __all__ = [
     "Subscription",
     "Reservation",
     "ReservationStatus",
+    "Invoice",
+    "InvoiceStatus",
+    "EmailNotification",
 ]
