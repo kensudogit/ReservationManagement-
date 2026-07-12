@@ -10,6 +10,9 @@ COPY frontend/ .
 # Same-origin API via Next rewrites
 ENV NEXT_PUBLIC_API_URL=
 ENV API_INTERNAL_URL=http://127.0.0.1:8000
+# Bust layer cache when guide UI changes (Railway remote cache)
+ARG SRM_WEB_BUILD=20260712-guide
+ENV SRM_WEB_BUILD=$SRM_WEB_BUILD
 RUN npm run build
 
 FROM python:3.12-slim-bookworm

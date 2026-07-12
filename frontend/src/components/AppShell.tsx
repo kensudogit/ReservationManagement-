@@ -16,6 +16,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isAuthPage || !user) return;
     try {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("guide") === "1") {
+        setGuideOpen(true);
+        return;
+      }
       const seen = localStorage.getItem("srm_guide_seen");
       if (!seen) {
         setGuideOpen(true);
@@ -103,9 +108,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         className="guide-fab"
         onClick={() => setGuideOpen(true)}
         aria-label="利用手順を開く"
-        title="利用手順"
+        title="利用手順パレットを開く"
       >
-        ?
+        <span className="guide-fab-mark">?</span>
+        <span className="guide-fab-label">利用手順</span>
       </button>
 
       <UsageGuideDialog open={guideOpen} onClose={() => setGuideOpen(false)} />
