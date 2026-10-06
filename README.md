@@ -1,5 +1,7 @@
 # Studio Reservation Manager
 
+> **Repository naming note:** The current GitHub repository name has a trailing hyphen (`ReservationManagement-`). This is the actual **reservation-management system** and is intended to become `ReservationManagement` after the naming collision is resolved.
+
 撮影スタジオのサブスクリプション予約管理システムです。
 
 ## 技術スタック
